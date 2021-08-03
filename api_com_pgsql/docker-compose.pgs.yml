@@ -1,0 +1,53 @@
+version: '3'
+
+services:
+  nginx:
+    image: nginx:1.15-alpine
+    restart: unless-stopped
+    volumes:
+      - ./data/nginx:/etc/nginx/conf.d
+      - ./data/certbot/conf:/etc/letsencrypt
+      - ./data/certbot/www:/var/www/certbot
+      - ./logs:/var/log/nginx
+      - static_volume:/home/app/static
+    ports:
+      - "80:80"
+      - "443:443"
+    command: "/bin/sh -c 'while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g \"daemon off;\"'"
+    depends_on:
+      - flask_app
+    networks:
+      - my-network
+  certbot:
+    image: certbot/certbot
+    restart: unless-stopped
+    volumes:
+      - ./data/certbot/conf:/etc/letsencrypt
+      - ./data/certbot/www:/var/www/certbot
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
+  flask_app:
+    container_name: flask_app
+    restart: always
+    image: flask/flask_docker_mimir_pgsql
+    expose:
+      - 8000
+    command: gunicorn -c gunicorn_config.py run:app
+    depends_on:
+      - db
+    volumes:
+      - static_volume:/home/app/static
+    networks:
+      - my-network
+  db:
+    image: postgres:13-alpine
+    volumes:
+      - postgres_data_prod:/var/lib/postgresql/data/
+    env_file:
+      - ./.env
+    networks:
+      - my-network
+volumes:
+  postgres_data_prod:
+  static_volume:
+networks:
+  my-network:

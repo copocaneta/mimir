@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="css/main.css">
+
+    <title>Mimir - Note Taking App by Thiago Bernardi</title>
+  </head>
+  <body>
+    <div class="container h-100">
+        <div class="row align-items-center h-100">
+            <div class="col-5 mx-auto ">
+                <div class="card h-100 justify-content-center mm-border">
+                  <!-- row do logo -->
+                  <div class="row">
+                    <div class="col text-center">
+                      <img src="assets/logo.png" class="img-fluid mm-logo justify-content-center" alt="Mimir - Note Taking App by Thiago Bernardi">
+                    </div>
+                  <!-- fim da row do logo -->
+                  </div>
+                  <!-- row do titulo -->
+                  <div class="row">
+                    <div class="col mx-4 my-2">
+                      <h6><strong>Create an account</strong></h3>
+                    </div>
+                  <!-- fim da row do titulo -->
+                  </div>
+                  <!-- inicio row do form -->
+                  <div id="mm-signupform" class="row">
+                    <div class="col mx-4 mt-2 mb-4">
+                      <form action="http://shit" method="post" id="mm-signup" data-toggle="validator" oninput='up2.setCustomValidity(up2.value != up.value ? "Passwords do not match." : "")'>
+                        <div class="form-group">
+                          <label for="exampleInputEmail1">Full Name</label>
+                          <input type="text" class="form-control form-control-sm" id="name" aria-describedby="namehelp" placeholder="Ex. John Doe">
+                          <div class="invalid-feedback">Please fill out your name.</div>
+                        </div>
+                        <div class="form-group">
+                          <label for="exampleInputEmail1">E-mail</label>
+                          <!-- <input type="email" class="form-control form-control-sm" id="email" aria-describedby="emailHelp" placeholder="Ex. john@gmail.com" data-error="Bruh, that email address is invalid" required> -->
+                          <input type="email" class="form-control form-control-sm" id="email" aria-describedby="emailHelp" placeholder="Ex. john@gmail.com" required>
+                          <div class="invalid-feedback">Please provide a valid email address.</div>
+                        </div>
+                        <div class="form-group">
+                          <label for="exampleInputPassword1">Password</label>
+                          <input type="password" class="form-control form-control-sm" id="inputPassword" placeholder="Password" name=up required>
+                          <div id="pwdStrengthError" class="invalid-feedback">Please type a stronger password.</div>
+                        </div>
+                        <div class="form-group">
+                          <label for="exampleInputPassword1">Confirm your Password</label>
+                          <input type="password" class="form-control form-control-sm" id="inputPasswordConfirm" data-match="#inputPassword" placeholder="Confirm" name=up2>
+                          <div class="invalid-feedback">Passwords don't match.</div>
+                        </div>
+                        <small id="mm-tosandprivacyagreement" class="form-text text-muted">By clicking "Create your account" bellow, you agree to our terms of service and privacy policy.</small>
+                        <!-- iniciando row do captcha -->
+                        <div class="row my-2">
+                          <div class="col text-center">
+                          <div id="captchaerror" class="invalid-feedback">Please validate the captcha:</div>
+                            <div class="g-recaptcha text-center justify-content-center" data-sitekey="6LfWIsIaAAAAAMFSn-SgUf3sXEpXjUb25pmBEbbc"></div>
+                          </div>
+                        <!-- fim da row do captcha -->
+                        </div>
+                        <button type="submit" class="btn btn-primary mt-2 btn-block">Create your account</button>
+                      </form>
+                    </div>
+                  <!-- fim da row do form -->
+                  </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src='https://www.google.com/recaptcha/api.js'></script>
+    <script src="js/jquery.js"></script>
+    <script src="js/popper.js"></script>
+    <script src="js/bootstrap.js"></script>
+    <script defer src="js/font-awesome-all.js"></script>
+    <script type="text/javascript" src="js/pwstrength-bootstrap.min.js"></script>
+    <script>
+      let passwordScore;
+      $('#inputPassword').pwstrength({
+        ui: {
+          showVerdictsInsideProgressBar: false
+        },
+        common: {
+            onKeyUp: function (evt, data) {
+                // console.log(data.score);
+                passwordScore = data.score;
+                // $log.append('<li>Score: ' + data.score + '</li>');
+            }
+        }
+      });
+      const formSignup = document.querySelector("#mm-signup")
+      const captchaError = document.querySelector('#captchaerror');
+      async function sendSignupForm(name, email, pwd, gRecaptchaResponse){
+
+        const response = await fetch('http://localhost:5000/registration', {
+          method: "POST",
+          headers: {
+            'Accept': 'application/json, text/plain, */*',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({'name': name, 'email': email, 'password': pwd, 'grecaptcharesponse': gRecaptchaResponse})
+        }).then(res => res.json())
+        .then(res => console.log(res));
+      }
+
+      formSignup.addEventListener('submit', validateForm);
+
+      function validateForm (event){
+        if (passwordScore < 30) {
+
+            event.preventDefault();
+            pwdStrengthError.classList.toggle("d-block");
+        }
+        if (grecaptcha.getResponse() == ""){
+
+            event.preventDefault();
+            captchaError.classList.toggle("d-block");
+            // alert("You can't proceed!");
+        }
+        gRecaptchaResponse = grecaptcha.getResponse();
+        inputPassword = document.querySelector('#inputPassword').value;
+        inputName = document.querySelector('#name').value;
+        inputEmail = document.querySelector('#email').value;
+        event.preventDefault();
+        sendSignupForm(inputName, inputEmail, inputPassword, gRecaptchaResponse);
+      }
+    </script>
+  </body>
+</html>

@@ -1,0 +1,5 @@
+.env
+mimir_api
+mimir.db
+api_com_pgsql.zip
+__pycache__
